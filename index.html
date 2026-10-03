@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskFlow - To-Do List & Gemini AI Assistant</title>
+    <meta
+      name="description"
+      content="TaskFlow: Organize your tasks, stay productive. A modern To-Do List app with priority tags, due dates, instant search, and a Gemini Task Assistant."
+    />
+    <meta property="og:title" content="TaskFlow - To-Do List & Gemini AI Assistant" />
+    <meta
+      property="og:description"
+      content="Organize your tasks. Stay productive. Modern To-Do List web application with Gemini AI Assistant."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- External Stylesheet -->
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <!-- Main Application Shell -->
+    <div class="app-shell">
+      <!-- Top Application Header -->
+      <header class="app-header">
+        <div class="header-branding">
+          <h1 class="app-title">TaskFlow</h1>
+          <p class="app-subtitle">Organize your tasks. Stay productive.</p>
+        </div>
+
+        <div class="header-actions">
+          <!-- Dark / Light Mode Toggle Button -->
+          <button
+            type="button"
+            id="themeToggleBtn"
+            class="btn-theme-toggle"
+            aria-label="Toggle dark mode"
+            title="Toggle Light / Dark Mode"
+          >
+            <span class="theme-icon" id="themeIcon">🌙</span>
+            <span class="theme-text" id="themeText">Dark Mode</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Dashboard Statistics Row -->
+      <section class="stats-dashboard" aria-label="Task statistics">
+        <div class="stat-card">
+          <div class="stat-icon stat-total-icon">📋</div>
+          <div class="stat-info">
+            <span class="stat-label">Total Tasks</span>
+            <span class="stat-value" id="statTotal">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon stat-completed-icon">✓</div>
+          <div class="stat-info">
+            <span class="stat-label">Completed</span>
+            <span class="stat-value" id="statCompleted">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon stat-remaining-icon">⏳</div>
+          <div class="stat-info">
+            <span class="stat-label">Remaining</span>
+            <span class="stat-value" id="statRemaining">0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Two-Column Layout -->
+      <div class="main-layout">
+        <!-- Left Column: Task Management -->
+        <main class="tasks-section" aria-label="Task Management">
+          <!-- Add Task Form -->
+          <div class="card task-input-card">
+            <form id="todoForm" class="todo-form" autocomplete="off">
+              <div class="input-main-row">
+                <input
+                  type="text"
+                  id="taskInput"
+                  class="todo-input"
+                  placeholder="What needs to be done? (e.g., Prepare biology presentation)..."
+                  aria-label="Task name"
+                  maxlength="200"
+                  required
+                />
+              </div>
+
+              <div class="input-details-row">
+                <!-- Priority Selector -->
+                <div class="form-group">
+                  <label for="prioritySelect" class="form-label">Priority:</label>
+                  <select id="prioritySelect" class="form-select" aria-label="Task priority">
+                    <option value="medium">⚡ Medium</option>
+                    <option value="high">🔴 High</option>
+                    <option value="low">🟢 Low</option>
+                  </select>
+                </div>
+
+                <!-- Due Date Picker -->
+                <div class="form-group">
+                  <label for="dueDateInput" class="form-label">Due Date:</label>
+                  <input
+                    type="date"
+                    id="dueDateInput"
+                    class="form-date"
+                    aria-label="Task due date"
+                  />
+                </div>
+
+                <!-- Add Task Button -->
+                <button type="submit" id="addTaskBtn" class="btn-primary btn-add" aria-label="Add task">
+                  <span class="icon-plus">+</span>
+                  <span>Add Task</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Search & Filter Controls -->
+          <div class="card toolbar-card">
+            <!-- Search Bar -->
+            <div class="search-wrapper">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input
+                type="text"
+                id="searchInput"
+                class="search-input"
+                placeholder="Search tasks by name..."
+                aria-label="Search tasks"
+              />
+              <button
+                type="button"
+                id="clearSearchBtn"
+                class="btn-clear-search"
+                style="display: none;"
+                aria-label="Clear search query"
+              >
+                ✕
+              </button>
+            </div>
+
+            <!-- Filter Tabs & Clear Completed Action -->
+            <div class="filters-row">
+              <div class="filter-group" role="tablist" aria-label="Filter tasks">
+                <button type="button" class="filter-btn active" data-filter="all" role="tab" aria-selected="true">
+                  All
+                </button>
+                <button type="button" class="filter-btn" data-filter="active" role="tab" aria-selected="false">
+                  Active
+                </button>
+                <button type="button" class="filter-btn" data-filter="completed" role="tab" aria-selected="false">
+                  Completed
+                </button>
+              </div>
+
+              <button
+                type="button"
+                id="clearCompletedBtn"
+                class="btn-clear-completed"
+                style="display: none;"
+                title="Remove all completed tasks"
+              >
+                🧹 Clear Completed
+              </button>
+            </div>
+          </div>
+
+          <!-- Task List -->
+          <div class="card task-list-card">
+            <ul id="taskList" class="task-list" aria-label="Task items"></ul>
+
+            <!-- Empty State View -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+              <div class="empty-icon" aria-hidden="true">📝</div>
+              <h3 class="empty-title">No tasks found</h3>
+              <p class="empty-desc">Add a task above or adjust your search filter.</p>
+            </div>
+          </div>
+        </main>
+
+        <!-- Right Column: Gemini Task Assistant -->
+        <aside class="ai-assistant-section" aria-label="Gemini AI Task Assistant">
+          <div class="card ai-card">
+            <!-- AI Header -->
+            <div class="ai-header">
+              <div class="ai-title-wrap">
+                <span class="ai-icon" aria-hidden="true">✨</span>
+                <div>
+                  <h2 class="ai-title">Gemini Task Assistant</h2>
+                  <p class="ai-subtitle">AI-powered task management & planning</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                id="clearChatBtn"
+                class="btn-icon"
+                title="Clear conversation history"
+                aria-label="Clear conversation history"
+              >
+                🗑️
+              </button>
+            </div>
+
+            <!-- API Key Missing Notification Banner -->
+            <div id="apiKeyBanner" class="api-key-banner" style="display: none;">
+              <span class="banner-icon">⚠️</span>
+              <div class="banner-content">
+                <strong>Gemini Assistant is unavailable.</strong>
+                <p>Please configure your <code>GEMINI_API_KEY</code> in environment variables or Settings &gt; Secrets.</p>
+              </div>
+            </div>
+
+            <!-- Quick Action Suggestion Chips -->
+            <div class="ai-suggestions-wrap">
+              <span class="suggestions-label">Quick Prompts:</span>
+              <div class="ai-chips">
+                <button type="button" class="ai-chip" data-prompt="Help me prioritize my tasks based on deadlines and importance.">
+                  ⭐ Prioritize Tasks
+                </button>
+                <button type="button" class="ai-chip" data-prompt="Create a productive study and work schedule for my tasks today.">
+                  📅 Daily Schedule
+                </button>
+                <button type="button" class="ai-chip" data-prompt="Which tasks are overdue or need urgent attention?">
+                  ⚠️ Check Overdue
+                </button>
+                <button type="button" class="ai-chip" data-prompt="Break down my highest priority incomplete task into actionable steps.">
+                  🪜 Step Breakdown
+                </button>
+              </div>
+            </div>
+
+            <!-- Chat Messages Log -->
+            <div id="chatMessages" class="chat-messages" aria-live="polite">
+              <!-- Initial Welcome Message from Assistant -->
+              <div class="chat-message assistant-message">
+                <div class="message-avatar">✨</div>
+                <div class="message-bubble">
+                  <p>
+                    Hello! I'm your <strong>Gemini Task Assistant</strong>. I can analyze your tasks, suggest priorities, break complex assignments into smaller steps, or build a daily schedule.
+                  </p>
+                  <p class="message-tip">Ask me anything about your tasks or click any quick prompt above!</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chat Loading Indicator -->
+            <div id="chatLoading" class="chat-loading" style="display: none;">
+              <span class="loading-dot"></span>
+              <span class="loading-dot"></span>
+              <span class="loading-dot"></span>
+              <span class="loading-text">Gemini is thinking...</span>
+            </div>
+
+            <!-- Chat Input Form -->
+            <form id="chatForm" class="chat-form">
+              <div class="chat-input-wrapper">
+                <input
+                  type="text"
+                  id="chatInput"
+                  class="chat-input"
+                  placeholder="Ask Gemini about your tasks..."
+                  aria-label="Ask Gemini Task Assistant"
+                  maxlength="500"
+                />
+                <button type="submit" id="sendChatBtn" class="btn-send-chat" aria-label="Send message">
+                  <span>Send</span>
+                  <span class="send-arrow">➤</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Application Footer -->
+      <footer class="app-page-footer">
+        <p>TaskFlow • Built with HTML5, CSS3, Vanilla JS &amp; Gemini 3.8 Flash</p>
+      </footer>
+    </div>
+
+    <!-- Edit Task Modal Dialog -->
+    <div id="editModal" class="modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="modalTitle" class="modal-title">✏️ Edit Task</h3>
+          <button type="button" id="closeModalBtn" class="modal-close-btn" aria-label="Close edit modal">✕</button>
+        </div>
+
+        <form id="editForm" class="modal-form">
+          <input type="hidden" id="editTaskId" />
+
+          <div class="modal-field">
+            <label for="editTaskText" class="form-label">Task Name</label>
+            <input
+              type="text"
+              id="editTaskText"
+              class="todo-input"
+              maxlength="200"
+              required
+            />
+          </div>
+
+          <div class="modal-row">
+            <div class="modal-field">
+              <label for="editPrioritySelect" class="form-label">Priority</label>
+              <select id="editPrioritySelect" class="form-select">
+                <option value="medium">⚡ Medium</option>
+                <option value="high">🔴 High</option>
+                <option value="low">🟢 Low</option>
+              </select>
+            </div>
+
+            <div class="modal-field">
+              <label for="editDueDateInput" class="form-label">Due Date</label>
+              <input type="date" id="editDueDateInput" class="form-date" />
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" id="cancelEditBtn" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Vanilla JavaScript Application Logic -->
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>
